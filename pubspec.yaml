@@ -1,0 +1,32 @@
+name: projeto_tcg
+description: "A new Flutter project."
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0        
+  shared_preferences: ^2.2.2  
+  flutter_svg: ^2.0.7         
+  provider: ^6.1.1    
+  cached_network_image: ^3.3.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/pokeball.png
+  fonts:
+    - family: Pokemon
+      fonts:
+        - asset: assets/fonts/PokemonGb-RAeo.ttf
