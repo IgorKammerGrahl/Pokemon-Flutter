@@ -8,6 +8,7 @@ environment:
   sdk: ^3.6.1
 
 dependencies:
+  collection: ^1.17.1
   flutter:
     sdk: flutter
   http: ^1.1.0        
@@ -16,6 +17,7 @@ dependencies:
   provider: ^6.1.1    
   cached_network_image: ^3.3.0
   cupertino_icons: ^1.0.8
+  
 
 dev_dependencies:
   flutter_test:

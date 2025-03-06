@@ -43,7 +43,7 @@ class ExplorePage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final pokemon = snapshot.data![index];
                 return FutureBuilder<Pokemon>(
-                  future: PokeApi.getPokemonDetails(pokemon.url),
+                  future: PokeApi.getPokemonDetails(pokemon.id),
                   builder: (context, detailSnapshot) {
                     if (detailSnapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());

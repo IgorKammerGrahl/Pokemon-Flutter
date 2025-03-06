@@ -20,12 +20,15 @@ class PokeApi {
   }
 
   // Busca detalhes de um Pokémon
-  static Future<Pokemon> getPokemonDetails(String url) async {
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      return Pokemon.fromDetailJson(json.decode(response.body));
-    } else {
-      throw Exception('Falha ao carregar detalhes');
-    }
+  static Future<Pokemon> getPokemonDetails(int id) async {
+  final response = await http.get(
+    Uri.parse('https://pokeapi.co/api/v2/pokemon/$id/')
+  );
+  
+  if (response.statusCode == 200) {
+    return Pokemon.fromDetailJson(json.decode(response.body));
+  } else {
+    throw Exception('Falha ao carregar detalhes');
   }
+}
 }

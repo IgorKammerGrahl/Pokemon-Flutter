@@ -14,7 +14,7 @@ class PokemonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTypeColor(pokemon.types?.firstOrNull ?? 'Normal');
+    final typeColor = _getTypeColor(pokemon.types.firstOrNull ?? 'Normal');
     
     return GestureDetector(
       onTap: onTap,
@@ -48,7 +48,7 @@ class PokemonCard extends StatelessWidget {
                       right: 0,
                       top: 0,
                       child: Text(
-                        '#${pokemon.id?.toString().padLeft(3, '0') ?? '000'}',
+                        '#${pokemon.id.toString().padLeft(3, '0')}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: typeColor.withOpacity(0.7),
@@ -63,7 +63,7 @@ class PokemonCard extends StatelessWidget {
                         height: 100,
                         width: 100,
                         child: CachedNetworkImage(
-                          imageUrl: pokemon.imageUrl ?? '',
+                          imageUrl: pokemon.imageUrl,
                           fit: BoxFit.contain,
                           placeholder: (context, url) => const Center(
                             child: SizedBox(
@@ -109,7 +109,7 @@ class PokemonCard extends StatelessWidget {
                         spacing: 6,
                         runSpacing: 4,
                         alignment: WrapAlignment.center,
-                        children: pokemon.types?.take(2).map((type) => Container(
+                        children: pokemon.types.take(2).map((type) => Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: _getTypeColor(type),
@@ -123,7 +123,7 @@ class PokemonCard extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        )).toList() ?? [],
+                        )).toList(),
                       ),
                     ],
                   ),
