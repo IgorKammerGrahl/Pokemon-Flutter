@@ -6,14 +6,14 @@ enum StatusCondition { burn, freeze, paralysis, poison, sleep, confusion }
 class StatusEffect {
   final StatusCondition condition;
   int duration;
-  double probability;
+  final double probability;
 
   StatusEffect({
     required this.condition,
     this.duration = -1,
     this.probability = 1.0,
   });
-  // Efeitos por condição
+
   Map<String, dynamic> get effects {
     switch (condition) {
       case StatusCondition.burn:
@@ -31,12 +31,27 @@ class StatusEffect {
     }
   }
 
-  // Aplicar efeito no final do turno
+  Map<String, dynamic> toJson() {
+    return {
+      'condition': condition.index,
+      'duration': duration,
+      'probability': probability,
+    };
+  }
+
+  factory StatusEffect.fromJson(Map<String, dynamic> json) {
+    return StatusEffect(
+      condition: StatusCondition.values[json['condition'] as int],
+      duration: json['duration'] as int,
+      probability: json['probability'] as double,
+    );
+  }
+
   void applyEndOfTurnEffect(BattlePokemon pokemon) {
     switch (condition) {
       case StatusCondition.burn:
       case StatusCondition.poison:
-        final damage = (pokemon.calculateStat('hp') * effects['end_of_turn_damage']).round();
+        final damage = (pokemon.calculateStat('hp') * effects['damage_per_turn']).round();
         pokemon.takeDamage(damage);
         break;
       case StatusCondition.confusion:
@@ -50,7 +65,6 @@ class StatusEffect {
     }
   }
 
-  // Verificar cura
   bool checkRecovery() {
     if (duration > 0) duration--;
     
@@ -60,7 +74,7 @@ class StatusEffect {
       case StatusCondition.sleep:
         return duration <= 0;
       default:
-        return false; // Status permanentes só curam com itens/habilidades
+        return false;
     }
   }
 }

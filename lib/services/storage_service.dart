@@ -1,23 +1,28 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/pokemon.dart';
 import 'dart:convert';
+import '../battle/models/battle_pokemon.dart';
 
 class StorageService {
-  static const String _teamKey = 'saved_team';
+  static const _teamKey = 'saved_team';
 
-  static Future<void> saveTeam(List<Pokemon> team) async {
+  static Future<void> saveTeam(List<BattlePokemon> team) async {
     final prefs = await SharedPreferences.getInstance();
-    final teamJson = team.map((p) => json.encode(p.toJson())).toList();
-    await prefs.setStringList(_teamKey, teamJson);
+    final jsonList = team.map((p) => p.toJson()).toList();
+    await prefs.setString(_teamKey, jsonEncode(jsonList));
   }
 
-  static Future<List<Pokemon>> getTeam() async {
+  static Future<List<BattlePokemon>> getTeam() async {
     final prefs = await SharedPreferences.getInstance();
-    final teamJson = prefs.getStringList(_teamKey) ?? [];
+    final jsonString = prefs.getString(_teamKey);
     
-    return teamJson.map((jsonStr) {
-      final decoded = json.decode(jsonStr);
-      return Pokemon.fromJson(decoded);
-    }).toList();
+    if (jsonString == null) return [];
+    
+    try {
+      final jsonList = jsonDecode(jsonString) as List<dynamic>;
+      return jsonList.map((e) => BattlePokemon.fromJson(e)).toList();
+    } catch (e) {
+      print('Erro ao carregar time: $e');
+      return [];
+    }
   }
 }

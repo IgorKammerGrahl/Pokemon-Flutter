@@ -5,13 +5,13 @@ import '../battle/services/battle_calculator.dart';
 import 'dart:math';
 
 class BattlePage extends StatefulWidget {
-  final BattlePokemon playerPokemon;
-  final BattlePokemon enemyPokemon;
+  final List<BattlePokemon> playerTeam;
+  final List<BattlePokemon> enemyTeam;
 
   const BattlePage({
     super.key,
-    required this.playerPokemon,
-    required this.enemyPokemon,
+    required this.playerTeam,
+    required this.enemyTeam,
   });
 
   @override
@@ -24,7 +24,12 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
   late Animation<double> _enemyAnimation;
   bool _showMoveSelection = false;
   String _battleMessage = '';
-  
+  int _currentPlayerIndex = 0;
+  int _currentEnemyIndex = 0;
+
+  BattlePokemon get currentPlayerPokemon => widget.playerTeam[_currentPlayerIndex];
+  BattlePokemon get currentEnemyPokemon => widget.enemyTeam[_currentEnemyIndex];
+
   @override
   void initState() {
     super.initState();
@@ -32,95 +37,93 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
+
     _playerAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
-    
+
     _enemyAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
-    
+
     _controller.forward();
     _showInitialMessage();
   }
 
   void _showInitialMessage() {
     setState(() {
-      _battleMessage = 'Wild ${widget.enemyPokemon.basePokemon.name} appeared!';
+      _battleMessage = 'Wild ${currentEnemyPokemon.basePokemon.name} appeared!';
     });
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
-        _battleMessage = 'Go ${widget.playerPokemon.basePokemon.name}!';
+        _battleMessage = 'Go ${currentPlayerPokemon.basePokemon.name}!';
+        _showMoveSelection = true;
       });
     });
   }
+
   void _attack(Move move) async {
     setState(() {
       _showMoveSelection = false;
-      _battleMessage = '${widget.playerPokemon.basePokemon.name} used ${move.name}!';
+      _battleMessage = '${currentPlayerPokemon.basePokemon.name} used ${move.name}!';
     });
 
     // Animação de ataque
     _controller.reset();
     await _controller.forward();
 
-    // Cálculo real de dano
+    // Cálculo de dano
     final damage = await BattleCalculator.calculateDamage(
-      attacker: widget.playerPokemon,
-      defender: widget.enemyPokemon,
+      attacker: currentPlayerPokemon,
+      defender: currentEnemyPokemon,
       move: move,
     );
 
-    // Animação de dano
-    _shakePokemon(widget.enemyPokemon);
-    widget.enemyPokemon.takeDamage(damage);
-    
+    // Aplicar dano
+    _shakePokemon(currentEnemyPokemon);
+    currentEnemyPokemon.takeDamage(damage);
+
     setState(() {});
-    
+
     // Verificar derrota do inimigo
-    if (widget.enemyPokemon.currentHp <= 0) {
+    if (currentEnemyPokemon.currentHp <= 0) {
       _showVictoryMessage();
       return;
     }
 
-    // Ataque do inimigo com delay
+    // Ataque do inimigo
     Future.delayed(const Duration(seconds: 2), _enemyAttack);
   }
 
   void _enemyAttack() async {
     setState(() {
-      _battleMessage = 'Enemy ${widget.enemyPokemon.basePokemon.name} attacks!';
+      _battleMessage = 'Enemy ${currentEnemyPokemon.basePokemon.name} attacks!';
     });
 
-    // Animação de ataque inimigo
-    _controller.reset();
-    await _controller.forward();
-
     // Selecionar movimento aleatório do inimigo
-    final randomMove = widget.enemyPokemon.moves[
-      Random().nextInt(widget.enemyPokemon.moves.length)
+    final randomMove = currentEnemyPokemon.moves[
+      Random().nextInt(currentEnemyPokemon.moves.length)
     ];
 
-    // Cálculo real de dano
+    // Cálculo de dano
     final damage = await BattleCalculator.calculateDamage(
-      attacker: widget.enemyPokemon,
-      defender: widget.playerPokemon,
+      attacker: currentEnemyPokemon,
+      defender: currentPlayerPokemon,
       move: randomMove,
     );
 
     setState(() {
-      _battleMessage = 'Enemy ${widget.enemyPokemon.basePokemon.name} used ${randomMove.name}!';
+      _battleMessage = 'Enemy ${currentEnemyPokemon.basePokemon.name} used ${randomMove.name}!';
     });
 
-    // Animação de dano
-    _shakePokemon(widget.playerPokemon);
-    widget.playerPokemon.takeDamage(damage);
-    
+    // Aplicar dano
+    _shakePokemon(currentPlayerPokemon);
+    currentPlayerPokemon.takeDamage(damage);
+
     setState(() {});
-    
+
     // Verificar derrota do jogador
-    if (widget.playerPokemon.currentHp <= 0) {
+    if (currentPlayerPokemon.currentHp <= 0) {
       _showDefeatMessage();
       return;
     }
@@ -131,28 +134,28 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
     });
   }
 
- void _shakePokemon(BattlePokemon pokemon) {
-  final shakeController = AnimationController(
-    duration: const Duration(milliseconds: 100),
-    vsync: this,
-  )..repeat(reverse: true);
-  
-  final shakeAnimation = Tween<double>(begin: 0, end: 10).animate(
-    CurvedAnimation(parent: shakeController, curve: Curves.easeInOut),
-  );
+  void _shakePokemon(BattlePokemon pokemon) {
+    final shakeController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    )..repeat(reverse: true);
 
-  shakeAnimation.addListener(() {
-    setState(() {});
-  });
+    final shakeAnimation = Tween<double>(begin: 0, end: 10).animate(
+      CurvedAnimation(parent: shakeController, curve: Curves.easeInOut),
+    );
 
-  shakeController.addStatusListener((status) {
-    if (status == AnimationStatus.completed) {
-      shakeController.dispose();
-    }
-  });
+    shakeAnimation.addListener(() {
+      setState(() {});
+    });
 
-  shakeController.forward();
-}
+    shakeController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        shakeController.dispose();
+      }
+    });
+
+    shakeController.forward();
+  }
 
   void _showVictoryMessage() {
     setState(() {
@@ -187,7 +190,7 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
               ),
             ),
           ),
-          
+
           // Pokémon Inimigo
           Align(
             alignment: const Alignment(0, -0.4),
@@ -199,7 +202,7 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
                   child: Opacity(
                     opacity: _enemyAnimation.value,
                     child: Image.network(
-                      widget.enemyPokemon.basePokemon.imageUrl,
+                      currentEnemyPokemon.basePokemon.imageUrl,
                       height: 120,
                     ),
                   ),
@@ -219,7 +222,7 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
                   child: Opacity(
                     opacity: _playerAnimation.value,
                     child: Image.network(
-                      widget.playerPokemon.basePokemon.imageUrl,
+                      currentPlayerPokemon.basePokemon.imageUrl,
                       height: 150,
                     ),
                   ),
@@ -232,14 +235,14 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
           Positioned(
             top: 40,
             left: 20,
-            child: _buildStatusBar(widget.enemyPokemon),
+            child: _buildStatusBar(currentEnemyPokemon),
           ),
 
           // Barra de status do jogador
           Positioned(
             bottom: 140,
             right: 20,
-            child: _buildStatusBar(widget.playerPokemon),
+            child: _buildStatusBar(currentPlayerPokemon),
           ),
 
           // Mensagem de batalha
@@ -336,9 +339,9 @@ class _BattlePageState extends State<BattlePage> with SingleTickerProviderStateM
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
       ),
-      itemCount: widget.playerPokemon.moves.length,
+      itemCount: currentPlayerPokemon.moves.length,
       itemBuilder: (context, index) {
-        final move = widget.playerPokemon.moves[index];
+        final move = currentPlayerPokemon.moves[index];
         return ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: _getMoveColor(move.type),

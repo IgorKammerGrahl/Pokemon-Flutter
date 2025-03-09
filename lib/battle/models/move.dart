@@ -1,6 +1,8 @@
+library move;
 import 'dart:math';
 import 'battle_pokemon.dart';
 import 'status_effect.dart';
+import '../../extensions/string_extensions.dart';
 
 class Move {
   final String name;
@@ -13,19 +15,45 @@ class Move {
   final bool highCritRatio;
   final Map<StatusCondition, double>? statusEffects;
 
-  Move({
-  required this.name,
-  required this.power,
-  required this.accuracy,
-  required this.type,
-  required this.pp,
-  required this.damageClass,
-  this.priority = 0,
-  this.highCritRatio = false,
-  this.statusEffects,
-}) : assert(power >= 0),
-     assert(accuracy >= 0 && accuracy <= 100),
-     assert(pp > 0);
+   Move({
+    required this.name,
+    required this.power,
+    required this.accuracy,
+    required this.type,
+    required this.pp,
+    required this.damageClass,
+    this.priority = 0,
+    this.highCritRatio = false,
+    this.statusEffects,
+  }); 
+
+  // Método para desserialização
+  factory Move.fromJson(Map<String, dynamic> json) {
+  return Move(
+    name: json['name'] as String? ?? 'Unknown Move',
+    power: json['power'] as int? ?? 0,
+    accuracy: json['accuracy'] as int? ?? 100,
+    type: (json['type']?['name'] as String?)?.capitalize() ?? 'Normal', // Null check
+    pp: json['pp'] as int? ?? 5,
+    damageClass: (json['damage_class']?['name'] as String?)?.capitalize() ?? 'Physical',
+    priority: json['priority'] as int? ?? 0,
+    highCritRatio: (json['meta']?['crit_rate'] as int? ?? 0) == 1,
+  );
+}
+
+  // Método para serialização
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'power': power,
+      'accuracy': accuracy,
+      'type': {'name': type.toLowerCase()},
+      'pp': pp,
+      'damage_class': {'name': damageClass.toLowerCase()},
+      'priority': priority,
+      'meta': {'crit_rate': highCritRatio ? 1 : 0},
+    };
+  }
 
   void applySecondaryEffects(BattlePokemon target) {
     if (statusEffects != null) {
