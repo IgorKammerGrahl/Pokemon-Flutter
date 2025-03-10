@@ -27,6 +27,17 @@ class Move {
     this.statusEffects,
   }); 
 
+    Move.empty()
+      : name = 'Unknown',
+        power = 0,
+        accuracy = 0,
+        type = 'Normal',
+        pp = 0,
+        damageClass = 'Physical',
+        priority = 0,
+        highCritRatio = false,
+        statusEffects = null;
+
   // Método para desserialização
   factory Move.fromJson(Map<String, dynamic> json) {
   return Move(
@@ -40,6 +51,7 @@ class Move {
     highCritRatio: (json['meta']?['crit_rate'] as int? ?? 0) == 1,
   );
 }
+
 
   // Método para serialização
   Map<String, dynamic> toJson() {

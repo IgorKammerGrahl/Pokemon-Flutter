@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/pokemon.dart';
+import '../providers/pokemon_provider.dart';
+import 'package:provider/provider.dart'; 
 
 class PokemonCard extends StatelessWidget {
   final Pokemon pokemon;
@@ -14,10 +16,18 @@ class PokemonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTypeColor(pokemon.types.firstOrNull ?? 'Normal');
+    final typeColor = _getTypeColor(pokemon.types.isNotEmpty 
+    ? pokemon.types.first 
+    : 'Normal');
     
     return GestureDetector(
-      onTap: onTap,
+        onTap: () {
+        if (pokemon.learnableMoves.isEmpty) {
+          final provider = Provider.of<PokemonProvider>(context, listen: false);
+          provider.loadPokemonDetails(pokemon.id);
+        }
+        onTap?.call();
+      },
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(

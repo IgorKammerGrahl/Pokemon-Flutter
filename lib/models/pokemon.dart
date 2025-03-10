@@ -1,13 +1,14 @@
 import 'dart:core';
 import '../battle/models/move.dart';
 
+
 class Pokemon {
   final int id;
   final String name;
   final List<String> types;
   final String imageUrl;
-  final List<Stat> stats;
-  final List<Move> learnableMoves;
+  List<Stat> stats;
+  List<Move> learnableMoves;
 
   Pokemon({
     required this.id,
@@ -17,6 +18,28 @@ class Pokemon {
     required this.stats,
     required this.learnableMoves,
   });
+
+  Pokemon copyWith({
+    List<Stat>? stats,
+    List<Move>? learnableMoves,
+  }) {
+    return Pokemon(
+      id: id,
+      name: name,
+      types: types,
+      imageUrl: imageUrl,
+      stats: stats ?? this.stats,
+      learnableMoves: learnableMoves ?? this.learnableMoves,
+    );
+  }
+
+    Pokemon.empty()
+      : id = 0,
+        name = 'Unknown',
+        types = const [],
+        imageUrl = '',
+        stats = const [],
+        learnableMoves = const [];
 
   factory Pokemon.fromListJson(Map<String, dynamic> json) {
   final url = json['url'] as String;
