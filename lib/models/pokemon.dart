@@ -41,11 +41,7 @@ class Pokemon {
         stats = const [],
         learnableMoves = const [];
 
-  factory Pokemon.fromListJson(Map<String, dynamic> json) {
-  final url = json['url'] as String;
-  final parts = url.split('/');
-  final id = int.parse(parts[parts.length - 2]);
-  
+  factory Pokemon.fromListJson(Map<String, dynamic> json, {required int id}) {
   return Pokemon(
     id: id,
     name: (json['name'] as String).capitalize(),

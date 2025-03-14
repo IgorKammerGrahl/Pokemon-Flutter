@@ -8,30 +8,27 @@ import 'shared_preferences_extensions.dart';
 
 class PokeApi {
   static const String _baseUrl = 'https://pokeapi.co/api/v2';
-  static const _cacheDuration = Duration(hours: 24);
+  static const _cacheDuration = Duration(hours: 24); // Mantido para detalhes
 
-  static Future<List<Pokemon>> getPokemons() async {
-    final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString('pokemon_list');
-    
-    if (cachedData != null) {
-      final cacheDate = prefs.getDateTime('pokemon_list_date');
-      if (cacheDate?.add(_cacheDuration).isAfter(DateTime.now()) ?? false) {
-        return (json.decode(cachedData) as List).map((p) => Pokemon.fromJson(p)).toList();
-      }
-    }
-
+   static Future<List<Pokemon>> getPokemons({int offset = 0}) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/pokemon?limit=151'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/pokemon?offset=$offset&limit=20')
+      );
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final pokemons = (data['results'] as List).map((p) => Pokemon.fromListJson(p)).toList();
+        final results = data['results'] as List;
         
-        // Salvar cache
-        await prefs.setString('pokemon_list', json.encode(pokemons));
-        await prefs.setDateTime('pokemon_list_date', DateTime.now());
-        
-        return pokemons;
+        // Garante ordenação correta
+        return results
+            .asMap()
+            .map((index, item) => MapEntry(
+              index,
+              Pokemon.fromListJson(item, id: offset + index + 1)
+            ))
+            .values
+            .toList();
       }
       throw Exception('Failed to load Pokémon list');
     } catch (e) {
@@ -42,10 +39,15 @@ class PokeApi {
 
   static Future<Pokemon> getPokemonDetails(int id) async {
     final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString('pokemon_$id');
+    final cacheKey = 'pokemon_$id';
+    final cachedData = prefs.getString(cacheKey);
     
+    // Verifica cache válido
     if (cachedData != null) {
-      return Pokemon.fromJson(json.decode(cachedData));
+      final cacheDate = prefs.getDateTime('$cacheKey-date');
+      if (cacheDate?.add(_cacheDuration).isAfter(DateTime.now()) ?? false) {
+        return Pokemon.fromJson(json.decode(cachedData));
+      }
     }
 
     try {
@@ -64,8 +66,9 @@ class PokeApi {
         learnableMoves: await _loadMoves(data['moves']),
       );
 
-      // Salvar cache
-      await prefs.setString('pokemon_$id', json.encode(pokemon.toJson()));
+      // Salva cache com data
+      await prefs.setString(cacheKey, json.encode(pokemon.toJson()));
+      await prefs.setDateTime('$cacheKey-date', DateTime.now());
       
       return pokemon;
     } catch (e) {

@@ -8,9 +8,8 @@ import 'models/pokemon.dart';
 import 'battle/models/battle_pokemon.dart';
 import 'battle/models/move.dart';
 import 'services/storage_service.dart';
-import '../providers/pokemon_provider.dart';
-import '../providers/team_provider.dart';
-
+import 'providers/pokemon_provider.dart';
+import 'providers/team_provider.dart';
 
 void main() => runApp(
   MultiProvider(
@@ -41,9 +40,7 @@ class MyApp extends StatelessWidget {
               case '/home':
                 return const HomePage();
               case '/team':
-                return TeamBuilderPage(
-                  availablePokemons: Provider.of<PokemonProvider>(context).availablePokemons,
-                );
+                return const TeamBuilderPage(); // Corrigido
               default:
                 return const SplashScreen();
             }
@@ -74,27 +71,26 @@ class _HomePageState extends State<HomePage> {
 
   void _loadTeam() async {
     final team = await StorageService.getTeam();
-    Provider.of<TeamProvider>(context, listen: false).setTeam(team);
+    if (mounted) {
+      Provider.of<TeamProvider>(context, listen: false).setTeam(team);
+    }
   }
 
   void _loadPokemons() async {
-  try {
-    await Provider.of<PokemonProvider>(context, listen: false).loadPokemons();
-  } catch (e) {
-    debugPrint("Erro ao carregar Pokémon: ${e.toString()}");
+    try {
+      await Provider.of<PokemonProvider>(context, listen: false).loadPokemons();
+    } catch (e) {
+      debugPrint("Erro ao carregar Pokémon: ${e.toString()}");
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     final teamProvider = Provider.of<TeamProvider>(context);
-    final pokemonProvider = Provider.of<PokemonProvider>(context);
 
     _pages = [
       const ExplorePage(),
-      TeamBuilderPage(
-        availablePokemons: pokemonProvider.availablePokemons,
-      ),
+      const TeamBuilderPage(), // Corrigido
       BattlePage(
         playerTeam: teamProvider.team,
         enemyTeam: _createRivalTeam(),
@@ -114,6 +110,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   List<BattlePokemon> _createRivalTeam() {
     return [
       _createRivalPokemon(

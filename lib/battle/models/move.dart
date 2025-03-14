@@ -40,17 +40,21 @@ class Move {
 
   // Método para desserialização
   factory Move.fromJson(Map<String, dynamic> json) {
-  return Move(
-    name: json['name'] as String? ?? 'Unknown Move',
-    power: json['power'] as int? ?? 0,
-    accuracy: json['accuracy'] as int? ?? 100,
-    type: (json['type']?['name'] as String?)?.capitalize() ?? 'Normal', // Null check
-    pp: json['pp'] as int? ?? 5,
-    damageClass: (json['damage_class']?['name'] as String?)?.capitalize() ?? 'Physical',
-    priority: json['priority'] as int? ?? 0,
-    highCritRatio: (json['meta']?['crit_rate'] as int? ?? 0) == 1,
-  );
-}
+    return Move(
+      name: json['name'] as String? ?? 'Unknown Move',
+      power: json['power'] as int? ?? 0,
+      accuracy: json['accuracy'] as int? ?? 100,
+      type: (json['type'] is String) 
+          ? json['type'] 
+          : (json['type']?['name'] as String?)?.capitalize() ?? 'Normal',
+      pp: json['pp'] as int? ?? 5,
+      damageClass: (json['damage_class'] is String)
+          ? json['damage_class']
+          : (json['damage_class']?['name'] as String?)?.capitalize() ?? 'Physical',
+      priority: json['priority'] as int? ?? 0,
+      highCritRatio: json['highCritRatio'] as bool? ?? false,
+    );
+  }
 
 
   // Método para serialização
@@ -59,11 +63,11 @@ class Move {
       'name': name,
       'power': power,
       'accuracy': accuracy,
-      'type': {'name': type.toLowerCase()},
+      'type': type,
       'pp': pp,
-      'damage_class': {'name': damageClass.toLowerCase()},
+      'damage_class': damageClass,
       'priority': priority,
-      'meta': {'crit_rate': highCritRatio ? 1 : 0},
+      'highCritRatio': highCritRatio,
     };
   }
 
